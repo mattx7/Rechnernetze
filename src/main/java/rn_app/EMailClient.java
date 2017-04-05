@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.net.SocketFactory;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -21,7 +22,7 @@ class EMailClient {
     public static final String ENCODING = "base64";
     public static final String MIME_VERSION = "1.0";
 
-
+    private final SocketFactory socketFactory = null;
     private Socket clientSocket;
     private SocketAddress address;
     private Base64.Encoder base64;
@@ -39,6 +40,8 @@ class EMailClient {
      * @param port Port to the server socket.
      */
     EMailClient(@NotNull String host, @NotNull Integer port) throws IOException {
+//        socketFactory = SSLSocketFactory.getDefault();
+//        clientSocket = socketFactory.createSocket();
         clientSocket = new Socket();
         this.address = new InetSocketAddress(host, port);
         properties = new PropertyConfig();
@@ -71,7 +74,7 @@ class EMailClient {
         this.attachment = attachmentPath;
 
         handshake();
-        authentication();
+        // authentication();
 
         sendToServer(
                 createMIME1(
@@ -82,23 +85,25 @@ class EMailClient {
         receiveFromServer();
     }
 
-    private void authentication() throws IOException {
-        sendToServer("AUTH LOGIN");
-        receiveFromServer();
-        // Authentification of user and password with Base64
-        sendToServer(encode(properties.getUser()));
-        receiveFromServer();
-        sendToServer(encode(properties.getPassword()));
-        receiveFromServer();
-    }
-
     private void handshake() throws IOException {
         receiveFromServer();
         sendToServer("EHLO client.example.de");
-        // Loop terminates when buffer is empty
+        // usable commands?
         for (int i = 0; i < 8; i++) {
             receiveFromServer();
         }
+    }
+
+    private void authentication() throws IOException {
+        sendToServer("STARTTLS");
+        receiveFromServer();
+        receiveFromServer();
+        sendToServer(encode(properties.getUser()));
+        receiveFromServer();
+        // Authentification of user and password with Base64
+        receiveFromServer();
+        sendToServer(encode(properties.getPassword()));
+        receiveFromServer();
     }
 
     /**
