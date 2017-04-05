@@ -1,7 +1,5 @@
-package rn_app; /**
- * Created by Neak on 05.04.2017.
- */
-// Reference: http://crunchify.com/java-properties-file-how-to-read-config-properties-values-in-java/
+package rn_app;
+
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -10,6 +8,9 @@ import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.Properties;
 
+/**
+ * @see <a href="http://crunchify.com/java-properties-file-how-to-read-config-properties-values-in-java/">crunchify.com</a>
+ */
 public class PropertyConfig {
     String result = "";
     InputStreamReader inputStream;
