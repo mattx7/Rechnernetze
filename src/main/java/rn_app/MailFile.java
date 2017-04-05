@@ -10,22 +10,26 @@ import java.io.IOException;
  */
 public class MailFile {
 
-    public static final Integer PORT = 465;
-    public static final String HOST = "mailgate.informatik.haw-hamburg.de";
-
     public static void main(String[] args) throws IOException { // TODO Exc handling
         if (args.length == 0) {
             System.err.println("Arguments Missing: 'rn_app.MailFile <recipient mail address> <file path>'");
             System.exit(1);
         }
 
+        // get arguments
         String email = args[0];
         String attachment = args[1];
-        EMailClient eMailClient = new EMailClient(HOST, PORT);
 
-        // transfer data
+        // New Socket
+        PropertyConfig prop = new PropertyConfig();
+        EMailClient eMailClient = new EMailClient(
+                prop.getHostName(),
+                Integer.valueOf(prop.getPort()));
+
+        // connect and transfer data
         eMailClient.connect();
         eMailClient.transfer(email, attachment);
         eMailClient.close();
     }
+
 }

@@ -3,8 +3,10 @@ package rn_app; /**
  */
 // Reference: http://crunchify.com/java-properties-file-how-to-read-config-properties-values-in-java/
 
-import rn_app.PropertyPath;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.Properties;
 
@@ -81,7 +83,7 @@ public class PropertyConfig {
         return content;
     }
 
-    public String getMailAddress() {
+    public String getSenderMailAddress() {
         return mailAddress;
     }
 
