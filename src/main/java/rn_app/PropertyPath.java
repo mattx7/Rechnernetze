@@ -7,9 +7,9 @@ public class PropertyPath {
 
     public static String getPath() {
         if (PropertyPath.isUnix()) {
-            return "./resources/config/config.properties";
+            return "../../resources/config.properties";
         } else {
-            return ".\\resources\\config\\config.properties";
+            return "build\\resources\\main\\config.properties";
         }
     }
 

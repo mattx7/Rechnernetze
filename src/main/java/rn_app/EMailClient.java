@@ -1,7 +1,7 @@
 package rn_app;
 
-import com.sun.istack.internal.NotNull;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -16,7 +16,7 @@ import java.util.Base64;
 
 class EMailClient {
     private static final Logger LOG = Logger.getLogger(EMailClient.class);
-    public static final int TIMEOUT = 1000;
+    public static final int TIMEOUT = 100000;
     public static final String ENCODING = "base64";
     public static final String MIME_VERSION = "1.0";
 
@@ -39,6 +39,7 @@ class EMailClient {
      */
     EMailClient(@NotNull String host, @NotNull Integer port) throws IOException {
 //        final SocketFactory factory = SSLSocketFactory.getDefault(); TODO SSL
+        clientSocket = new Socket();
         this.address = new InetSocketAddress(host, port);
         properties = new PropertyConfig();
     }
@@ -69,7 +70,7 @@ class EMailClient {
         this.email = email;
         this.attachment = attachmentPath;
 
-        sendToServer("AUTH LOGIN");
+        sendToServer("AUTH LOGIN"); // TODO wieso LOGIN in PLAIN ändern(beides zusammenfassen)
         receiveFromServer();
         sendToServer(encode(properties.getUser()));
         receiveFromServer();
@@ -103,25 +104,25 @@ class EMailClient {
         Path filePath = Paths.get(attachmentPath);
         byte[] attachmentContent = Files.readAllBytes(filePath);
 
-        return "From: <" + senderEmail + ">" +
-                "To: <" + receiverEmail + ">" +
-                "Subject:" + subject +
-                "MIME-Version: " + MIME_VERSION +
-                "Content-Type: multipart/mixed; boundary=frontier" + // TODO KA HEADER?
+        return "From: <" + senderEmail + "> " + "\n" +
+                "To: <" + receiverEmail + ">" + "\n" +
+                "Subject:" + subject + "\n" +
+                "MIME-Version: " + MIME_VERSION + "\n" +
+                "Content-Type: multipart/mixed; boundary=frontier" + "\n" +// TODO KA HEADER?
                 "" +
-                "This is a message with multiple parts in MIME format." +
+                "This is a message with multiple parts in MIME format." + "\n" +
                 "" +
-                "--frontier" +
-                "Content-Type: text/plain" + // BODY
+                "--frontier" + "\n" +
+                "Content-Type: text/plain" + "\n" +// BODY
                 "" +
-                properties.getContent() +
+                properties.getContent() + "\n" +
                 "" +
-                "--frontier" +
-                "Content-Type: text/plain" + // ANHANG
-                "Content-Transfer-Encoding: " + ENCODING +
-                "Content-Disposition: attachment; filename=" + attachment.getName() +
+                "--frontier" + "\n" +
+                "Content-Type: text/plain" + "\n" +// ANHANG
+                "Content-Transfer-Encoding: " + ENCODING + "\n" +
+                "Content-Disposition: attachment; filename=" + attachment.getName() + "\n" +
                 "" +
-                Arrays.toString(base64.encode(attachmentContent)) + // Anhang verschlüsseln
+                encode(attachmentContent) + "\n" + // Anhang verschlüsseln
                 "" +
                 "";
     }
@@ -131,6 +132,13 @@ class EMailClient {
      */
     private String encode(String str) {
         return Arrays.toString((base64.encode((str.getBytes()))));
+    }
+
+    /**
+     * Encodes bytes with Base64
+     */
+    private String encode(byte[] bytes) {
+        return Arrays.toString((base64.encode((bytes))));
     }
 
     /**
@@ -160,7 +168,7 @@ class EMailClient {
     /**
      * Close connection.
      */
-    public void close() {
+    void close() {
         try {
             clientSocket.close();
             inFromServer.close();

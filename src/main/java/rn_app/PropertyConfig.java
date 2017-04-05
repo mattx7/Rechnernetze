@@ -1,6 +1,8 @@
 package rn_app;
 
 
+import org.apache.log4j.Logger;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -12,6 +14,8 @@ import java.util.Properties;
  * @see <a href="http://crunchify.com/java-properties-file-how-to-read-config-properties-values-in-java/">crunchify.com</a>
  */
 public class PropertyConfig {
+    private static final Logger LOG = Logger.getLogger(PropertyConfig.class);
+
     String result = "";
     InputStreamReader inputStream;
     String hostName;
@@ -44,16 +48,16 @@ public class PropertyConfig {
             Date time = new Date(System.currentTimeMillis());
 
             // Get property value and print it out
-            mailAddress         = prop.getProperty("mailAddress");
-            user                = prop.getProperty("user");
-            password            = prop.getProperty("password");
-            hostName            = prop.getProperty("hostName");
-            port                = prop.getProperty("port");
-            subject             = prop.getProperty("subject");
+            mailAddress = prop.getProperty("mailAddress");
+            user = prop.getProperty("user");
+            password = prop.getProperty("password");
+            hostName = prop.getProperty("hostName");
+            port = prop.getProperty("port");
+            subject = prop.getProperty("subject");
             String temp_content = prop.getProperty("mailBody");
 
-            System.out.println("Temp_content: " + temp_content);
-            System.out.println("Content: " + content);
+//            LOG.debug("Temp_content: " + temp_content);
+//            LOG.debug("Content: " + content);
 
             if (temp_content.contains("\n.")) {
                 content = temp_content.replaceAll("\n.", "\n..");
@@ -62,13 +66,13 @@ public class PropertyConfig {
             } else {
                 content = temp_content;
             }
-            System.out.println("Content after replacement: " + content);
+//            LOG.debug("Content after replacement: " + content);
 
             result = "Props = " + mailAddress + ", " + user + ", " + password + ", " + hostName + ", " + port;
-            System.out.println(result + "\nProgram Ran on " + time + " by user=" + user);
+//            LOG.debug(result + "\nProgram Ran on " + time + " by user=" + user);
 
         } catch (Exception e) {
-            System.out.println("Exception: " + e);
+            LOG.error("Exception: " + e);
         } finally {
             inputStream.close();
         }
