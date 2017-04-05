@@ -13,7 +13,7 @@ import java.util.Base64;
 
 class EMailClient {
     private static final Logger LOG = Logger.getLogger(EMailClient.class);
-    public static final int TIMEOUT = 100;
+    public static final int TIMEOUT = 1000;
 
     private Socket clientSocket;
     private SocketAddress address;
@@ -31,12 +31,8 @@ class EMailClient {
      * @param port Port to the server socket.
      */
     EMailClient(String host, Integer port) {
-
         this.clientSocket = new Socket();
         this.address = new InetSocketAddress(host, port);
-        this.email = email;
-        this.attachment = attachment;
-
     }
 
     /**
@@ -55,6 +51,12 @@ class EMailClient {
         }
     }
 
+    /**
+     * Transfers attachment to email.
+     *
+     * @param email      target mail.
+     * @param attachment not null.
+     */
     void transfer(String email,
                   String attachment) throws IOException {
 
@@ -65,12 +67,22 @@ class EMailClient {
         readFromServer();
     }
 
+    /**
+     * Transfers request to server.
+     *
+     * @param request as String.
+     */
     private void writeToServer(String request) throws IOException {
         // Send one line (with CRLF) to server
         outToServer.writeBytes(request + '\r' + '\n');
         System.out.println("TCP Client has sent the message: " + request);
     }
 
+    /**
+     * Reads from Server.
+     *
+     * @return reply as String.
+     */
     private String readFromServer() throws IOException {
         // Read reply from server
         String reply = inFromServer.readLine();
@@ -78,6 +90,9 @@ class EMailClient {
         return reply;
     }
 
+    /**
+     * Close connection.
+     */
     public void close() {
         try {
             clientSocket.close();

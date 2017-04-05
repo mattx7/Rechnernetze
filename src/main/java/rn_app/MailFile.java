@@ -11,7 +11,7 @@ import java.io.IOException;
 public class MailFile {
 
     public static final Integer PORT = 465;
-    public static final String HOST = "127.0.0.1";
+    public static final String HOST = "mailgate.informatik.haw-hamburg.de";
 
     public static void main(String[] args) throws IOException { // TODO Exc handling
         if (args.length == 0) {
@@ -23,6 +23,7 @@ public class MailFile {
         String attachment = args[1];
         EMailClient eMailClient = new EMailClient(HOST, PORT);
 
+        // transfer data
         eMailClient.connect();
         eMailClient.transfer(email, attachment);
         eMailClient.close();

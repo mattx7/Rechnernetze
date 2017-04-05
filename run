@@ -1,1 +1,1 @@
-java -cp build/classes/main rn_app.MailFile email@email.de /tmp/iwas.docx
+java -cp build/classes/main rn_app.MailFile lion.pierau@gmail.com /home/lionpierau/test.docx
