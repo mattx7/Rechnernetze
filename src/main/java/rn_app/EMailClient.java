@@ -1,5 +1,7 @@
 package rn_app;
 
+import org.apache.log4j.Logger;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -10,8 +12,8 @@ import java.net.SocketAddress;
 import java.util.Base64;
 
 class EMailClient {
-
-    private static final int TIMEOUT = 100;
+    private static final Logger LOG = Logger.getLogger(EMailClient.class);
+    public static final int TIMEOUT = 100;
 
     private Socket clientSocket;
     private SocketAddress address;
@@ -24,34 +26,43 @@ class EMailClient {
     private String email;
     private String attachment;
 
-    EMailClient(String host,
-                Integer port,
-                String email,
-                String attachment) throws IOException {
+    /**
+     * @param host Address from the server.
+     * @param port Port to the server socket.
+     */
+    EMailClient(String host, Integer port) {
 
         this.clientSocket = new Socket();
         this.address = new InetSocketAddress(host, port);
-
-//        inFromUser = new BufferedReader(new InputStreamReader(email)); // TODO System.in ersetzen
-        outToServer = new DataOutputStream(clientSocket.getOutputStream());
-        inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-
         this.email = email;
         this.attachment = attachment;
 
     }
 
-    void startJob() throws IOException {
-        String out;
-        String modifiedOut;
+    /**
+     * Starts connection and create
+     *
+     * @throws IOException Error during connection.
+     */
+    void connect() throws IOException {
+        try {
+            clientSocket.connect(address, TIMEOUT);
+            outToServer = new DataOutputStream(clientSocket.getOutputStream());
+            inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        } catch (IOException e) {
+            LOG.error("Error during connection!");
+            throw e;
+        }
+    }
 
-        clientSocket.connect(address, TIMEOUT);
-        out = inFromUser.readLine(); // TODO anpassen
+    void transfer(String email,
+                  String attachment) throws IOException {
+
+        this.email = email;
+        this.attachment = attachment;
 
         writeToServer(email);
         readFromServer();
-
-        clientSocket.close();
     }
 
     private void writeToServer(String request) throws IOException {
@@ -67,4 +78,11 @@ class EMailClient {
         return reply;
     }
 
+    public void close() {
+        try {
+            clientSocket.close();
+        } catch (IOException e) {
+            LOG.error("IOException");
+        }
+    }
 }
