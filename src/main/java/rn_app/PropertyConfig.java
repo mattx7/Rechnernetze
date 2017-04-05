@@ -25,7 +25,7 @@ public class PropertyConfig {
 
     // Read properties from input stream
     // Exception when path incorrect/ properties not existent
-    public void getValues() throws IOException {
+    public String getValues() throws IOException {
         try {
             Properties prop = new Properties();
             String propFileName = "config.properties";
@@ -69,6 +69,7 @@ public class PropertyConfig {
         } finally {
             inputStream.close();
         }
+        return result;
     }
 
     // GETTER
