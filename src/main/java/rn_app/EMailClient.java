@@ -9,7 +9,6 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,7 +26,6 @@ class EMailClient {
     private SocketAddress address;
     private Base64.Encoder base64;
 
-    private BufferedReader inFromUser;
     private DataOutputStream outToServer;
     private BufferedReader inFromServer;
 
@@ -76,34 +74,27 @@ class EMailClient {
         handshake();
         // authentication();
 
-        sendToServer(
-                createMIME1(
-                        properties.getSenderMailAddress(),
-                        email,
-                        properties.getSubject(),
-                        attachmentPath));
-        receiveFromServer();
+
+        createMIME1(
+                properties.getSenderMailAddress(),
+                email,
+                properties.getSubject(),
+                attachmentPath);
+        receive();
     }
 
     private void handshake() throws IOException {
-        receiveFromServer();
-        sendToServer("EHLO client.example.de");
+        receive();
+        send("EHLO client.example.de");
         // usable commands?
         for (int i = 0; i < 8; i++) {
-            receiveFromServer();
+            receive();
         }
     }
 
     private void authentication() throws IOException {
-        sendToServer("STARTTLS");
-        receiveFromServer();
-        receiveFromServer();
-        sendToServer(encode(properties.getUser()));
-        receiveFromServer();
-        // Authentification of user and password with Base64
-        receiveFromServer();
-        sendToServer(encode(properties.getPassword()));
-        receiveFromServer();
+        sendAndReceive("STARTTLS");
+        sendAndReceive("AUTH PLAIN " + encode(properties.getUser()) + encode(properties.getPassword()));
     }
 
     /**
@@ -115,36 +106,30 @@ class EMailClient {
      * @param attachmentPath not null.
      * @return EMail in MIME 1.0
      */
-    @NotNull
-    private String createMIME1(@NotNull String senderEmail,
-                               @NotNull String receiverEmail,
-                               @NotNull String subject,
-                               @NotNull String attachmentPath) throws IOException {
+    private void createMIME1(@NotNull String senderEmail,
+                             @NotNull String receiverEmail,
+                             @NotNull String subject,
+                             @NotNull String attachmentPath) throws IOException {
         File attachment = new File(attachmentPath);
         Path filePath = Paths.get(attachmentPath);
         byte[] attachmentContent = Files.readAllBytes(filePath);
-
-        return "From: <" + senderEmail + "> " + "\n" +
-                "To: <" + receiverEmail + ">" + "\n" +
-                "Subject:" + subject + "\n" +
-                "MIME-Version: " + MIME_VERSION + "\n" +
-                "Content-Type: multipart/mixed; boundary=frontier" + "\n" +// TODO KA HEADER?
-                "" +
-                "This is a message with multiple parts in MIME format." + "\n" +
-                "" +
-                "--frontier" + "\n" +
-                "Content-Type: text/plain" + "\n" +// BODY
-                "" +
-                properties.getContent() + "\n" +
-                "" +
-                "--frontier" + "\n" +
-                "Content-Type: text/plain" + "\n" +// ANHANG
-                "Content-Transfer-Encoding: " + ENCODING + "\n" +
-                "Content-Disposition: attachment; filename=" + attachment.getName() + "\n" +
-                "" +
-                encode(attachmentContent) + "\n" + // Anhang verschlüsseln
-                "" +
-                "";
+        send("From: " + senderEmail);
+        send("To: " + receiverEmail);
+        send("Subject:" + subject);
+        send("MIME-Version: " + MIME_VERSION);
+        send("Content-Type: multipart/mixed; boundary=frontier");
+        send("This is a message with multiple parts in MIME format.");
+        send("--frontier");
+        send("Content-Type: text/plain");
+        send(properties.getContent());
+//                "--frontier" + "\n" +
+//                "Content-Type: text/plain" + "\n" +// ANHANG
+//                "Content-Transfer-Encoding: " + ENCODING + "\n" +
+//                "Content-Disposition: attachment; filename=" + attachment.getName() + "\n" +
+//                "" +
+//                encode(attachmentContent) + "\n" + // Anhang verschlüsseln
+//                "" +
+//        "";
     }
 
     /**
@@ -166,32 +151,43 @@ class EMailClient {
      *
      * @param request as String.
      */
-    private void sendToServer(@NotNull String request) throws IOException {
+    private void send(@NotNull String request) {
         // Send one line (with CRLF) to server
         try {
             outToServer.writeBytes(request + '\r' + '\n');
             LOG.debug("Sent: " + request);
-        } catch (final SocketException e) {
-            LOG.error("sendToServer()", e);
+        } catch (final Exception e) {
+            LOG.error("send()", e);
         }
     }
 
     /**
-     * Reads from Server.
+     * Reads from server.
      *
      * @return reply as String.
      */
     @Nullable
-    private String receiveFromServer() {
+    private String receive() {
         // Read reply from server
         String reply = null;
         try {
             reply = inFromServer.readLine();
             LOG.debug("Received: " + reply);
         } catch (final Exception e) {
-            LOG.error("receiveFromServer()", e);
+            LOG.error("receive()", e);
         }
         return reply;
+    }
+
+    /**
+     * Transfers request to server and reads from server
+     *
+     * @param request as String.
+     * @return reply as String.
+     */
+    private String sendAndReceive(@NotNull String request) {
+        send(request);
+        return receive();
     }
 
     /**
@@ -199,10 +195,10 @@ class EMailClient {
      */
     void close() {
         try {
+            send("QUIT");
             clientSocket.close();
             inFromServer.close();
             outToServer.close();
-            inFromUser.close();
         } catch (Exception e) {
             LOG.error("IOException", e);
         }
