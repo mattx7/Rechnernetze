@@ -70,22 +70,8 @@ class EMailClient {
         this.email = email;
         this.attachment = attachmentPath;
 
-        String serverResponse = receiveFromServer();
-        System.out.println("Antwort: " + serverResponse);
-        sendToServer("EHLO client.example.de");
-        System.out.println("EHLO client.example.de");
-        // Loop terminates when buffer is empty
-        for (int i = 0; i < 10; i++) {
-            serverResponse = receiveFromServer();
-            System.out.println(serverResponse);
-        }
-        sendToServer("AUTH LOGIN");
-        receiveFromServer();
-        // Authentification of user and password with Base64
-        sendToServer(encode(properties.getUser()));
-        receiveFromServer();
-        sendToServer(encode(properties.getPassword()));
-        receiveFromServer();
+        handshake();
+        authentication();
 
         sendToServer(
                 createMIME1(
@@ -94,6 +80,25 @@ class EMailClient {
                         properties.getSubject(),
                         attachmentPath));
         receiveFromServer();
+    }
+
+    private void authentication() throws IOException {
+        sendToServer("AUTH LOGIN");
+        receiveFromServer();
+        // Authentification of user and password with Base64
+        sendToServer(encode(properties.getUser()));
+        receiveFromServer();
+        sendToServer(encode(properties.getPassword()));
+        receiveFromServer();
+    }
+
+    private void handshake() throws IOException {
+        receiveFromServer();
+        sendToServer("EHLO client.example.de");
+        // Loop terminates when buffer is empty
+        for (int i = 0; i < 8; i++) {
+            receiveFromServer();
+        }
     }
 
     /**
