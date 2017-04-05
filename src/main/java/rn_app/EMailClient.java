@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,7 +17,7 @@ import java.util.Base64;
 
 class EMailClient {
     private static final Logger LOG = Logger.getLogger(EMailClient.class);
-    public static final int TIMEOUT = 100000;
+    public static final int TIMEOUT = 100;
     public static final String ENCODING = "base64";
     public static final String MIME_VERSION = "1.0";
 
@@ -38,10 +39,10 @@ class EMailClient {
      * @param port Port to the server socket.
      */
     EMailClient(@NotNull String host, @NotNull Integer port) throws IOException {
-//        final SocketFactory factory = SSLSocketFactory.getDefault(); TODO SSL
         clientSocket = new Socket();
         this.address = new InetSocketAddress(host, port);
         properties = new PropertyConfig();
+        base64 = Base64.getEncoder();
     }
 
     /**
@@ -49,14 +50,13 @@ class EMailClient {
      *
      * @throws IOException Error during connection.
      */
-    void connect() throws IOException {
+    void connect() {
         try {
             clientSocket.connect(address, TIMEOUT);
             outToServer = new DataOutputStream(clientSocket.getOutputStream());
             inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         } catch (IOException e) {
             LOG.error("Error during connection!");
-            throw e;
         }
     }
 
@@ -70,8 +70,18 @@ class EMailClient {
         this.email = email;
         this.attachment = attachmentPath;
 
-        sendToServer("AUTH LOGIN"); // TODO wieso LOGIN in PLAIN ändern(beides zusammenfassen)
+        String serverResponse = receiveFromServer();
+        System.out.println("Antwort: " + serverResponse);
+        sendToServer("EHLO client.example.de");
+        System.out.println("EHLO client.example.de");
+        // Loop terminates when buffer is empty
+        for (int i = 0; i < 10; i++) {
+            serverResponse = receiveFromServer();
+            System.out.println(serverResponse);
+        }
+        sendToServer("AUTH LOGIN");
         receiveFromServer();
+        // Authentification of user and password with Base64
         sendToServer(encode(properties.getUser()));
         receiveFromServer();
         sendToServer(encode(properties.getPassword()));
@@ -148,8 +158,12 @@ class EMailClient {
      */
     private void sendToServer(@NotNull String request) throws IOException {
         // Send one line (with CRLF) to server
-        outToServer.writeBytes(request + '\r' + '\n');
-        System.out.println("Sent: " + request);
+        try {
+            outToServer.writeBytes(request + '\r' + '\n');
+            LOG.debug("Sent: " + request);
+        } catch (final SocketException e) {
+            LOG.error("sendToServer():" + e);
+        }
     }
 
     /**
@@ -158,10 +172,15 @@ class EMailClient {
      * @return reply as String.
      */
     @Nullable
-    private String receiveFromServer() throws IOException {
+    private String receiveFromServer() {
         // Read reply from server
-        String reply = inFromServer.readLine();
-        System.out.println("Received: " + reply);
+        String reply = null;
+        try {
+            reply = inFromServer.readLine();
+            LOG.debug("Received: " + reply);
+        } catch (final Exception e) {
+            LOG.error("receiveFromServer():" + e);
+        }
         return reply;
     }
 
@@ -174,7 +193,7 @@ class EMailClient {
             inFromServer.close();
             outToServer.close();
             inFromUser.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOG.error("IOException");
         }
     }
