@@ -56,7 +56,7 @@ class EMailClient {
             outToServer = new DataOutputStream(clientSocket.getOutputStream());
             inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         } catch (IOException e) {
-            LOG.error("Error during connection!");
+            LOG.error("Error during connection!", e);
         }
     }
 
@@ -162,7 +162,7 @@ class EMailClient {
             outToServer.writeBytes(request + '\r' + '\n');
             LOG.debug("Sent: " + request);
         } catch (final SocketException e) {
-            LOG.error("sendToServer():" + e);
+            LOG.error("sendToServer()", e);
         }
     }
 
@@ -179,7 +179,7 @@ class EMailClient {
             reply = inFromServer.readLine();
             LOG.debug("Received: " + reply);
         } catch (final Exception e) {
-            LOG.error("receiveFromServer():" + e);
+            LOG.error("receiveFromServer()", e);
         }
         return reply;
     }
@@ -194,7 +194,7 @@ class EMailClient {
             outToServer.close();
             inFromUser.close();
         } catch (Exception e) {
-            LOG.error("IOException");
+            LOG.error("IOException", e);
         }
     }
 }
