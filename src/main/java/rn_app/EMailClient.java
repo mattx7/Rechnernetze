@@ -4,10 +4,10 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,8 +21,8 @@ class EMailClient {
     public static final String ENCODING = "base64";
     public static final String MIME_VERSION = "1.0";
 
-    private final SocketFactory socketFactory = null;
-    private Socket clientSocket;
+    private SSLSocketFactory socketFactory = null;
+    private SSLSocket clientSocket;
     private SocketAddress address;
     private Base64.Encoder base64;
 
@@ -38,9 +38,9 @@ class EMailClient {
      * @param port Port to the server socket.
      */
     EMailClient(@NotNull String host, @NotNull Integer port) throws IOException {
-//        socketFactory = SSLSocketFactory.getDefault();
-//        clientSocket = socketFactory.createSocket();
-        clientSocket = new Socket();
+        socketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+        clientSocket = (SSLSocket) socketFactory.createSocket(host, port);
+//        clientSocket = new Socket();
         this.address = new InetSocketAddress(host, port);
         properties = new PropertyConfig();
         base64 = Base64.getEncoder();
@@ -53,7 +53,7 @@ class EMailClient {
      */
     void connect() {
         try {
-            clientSocket.connect(address, TIMEOUT);
+//            clientSocket.connect(address, TIMEOUT);
             outToServer = new DataOutputStream(clientSocket.getOutputStream());
             inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         } catch (IOException e) {
