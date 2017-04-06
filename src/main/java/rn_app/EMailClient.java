@@ -79,6 +79,7 @@ class EMailClient {
         send("EHLO client.example.de");
         // usable commands?
         receive();
+        receive();
     }
 
     private void authentication() throws IOException {
@@ -186,7 +187,7 @@ class EMailClient {
         try {
             reply = inFromServer.readLine();
             LOG.debug("Received: " + reply);
-            if (reply.matches("250-.*")) {
+            if (reply.matches("[0-9][0-9][0-9]-.*")) {
                 receive();
             }
         } catch (final Exception e) {
