@@ -21,7 +21,7 @@ class EMailClient {
     public static final String ENCODING = "base64";
     public static final String MIME_VERSION = "1.0";
 
-    private SSLSocketFactory socketFactory = null;
+    private SSLSocketFactory socketFactory;
     private SSLSocket clientSocket;
     private SocketAddress address;
     private Base64.Encoder base64;
@@ -72,8 +72,7 @@ class EMailClient {
         this.attachment = attachmentPath;
 
         handshake();
-        // authentication();
-
+        authentication();
 
         createMIME1(
                 properties.getSenderMailAddress(),
@@ -87,14 +86,16 @@ class EMailClient {
         receive();
         send("EHLO client.example.de");
         // usable commands?
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 9; i++) {
             receive();
         }
     }
 
     private void authentication() throws IOException {
-        sendAndReceive("STARTTLS");
-        sendAndReceive("AUTH PLAIN " + encode(properties.getUser()) + encode(properties.getPassword()));
+//        sendAndReceive("STARTTLS");
+        sendAndReceive("AUTH LOGIN ");
+        sendAndReceive(encode(properties.getUser()));
+        sendAndReceive(encode(properties.getPassword()));
     }
 
     /**
@@ -136,7 +137,7 @@ class EMailClient {
      * Encodes str with Base64
      */
     private String encode(String str) {
-        return Arrays.toString((base64.encode((str.getBytes()))));
+        return (base64.encodeToString(str.getBytes()));
     }
 
     /**
