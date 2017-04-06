@@ -20,6 +20,7 @@ public class MailFile {
         String email = args[0];
         String attachment = args[1];
 
+
         // New Socket
         PropertyConfig prop = new PropertyConfig();
         EMailClient eMailClient = new EMailClient(
@@ -27,7 +28,6 @@ public class MailFile {
                 Integer.valueOf(prop.getPort()));
 
         // connect and transfer data
-        eMailClient.connect();
         eMailClient.transfer(email, attachment);
         eMailClient.close();
     }
