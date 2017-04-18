@@ -18,3 +18,19 @@ dependencies {
     compile group: 'com.intellij', name: 'annotations', version: '9.0.4'
     compile group: 'com.google.guava', name: 'guava', version: '20.0'
 }
+
+jar {
+    baseName = 'ChatApp'
+    manifest {
+        attributes 'Main-Class': 'email_app.EMailClient'
+    }
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'email_app.EMailClient'
+    }
+    baseName = jar.baseName + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}

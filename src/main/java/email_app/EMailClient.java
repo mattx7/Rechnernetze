@@ -70,7 +70,6 @@ class EMailClient {
         } catch (IOException e) {
             LOG.error("send()", e);
         }
-        ;
     }
 
     private void handshake() throws IOException {
