@@ -1,4 +1,4 @@
-package rn_app;
+package email_app;
 
 /**
  * Created by Neak on 05.04.2017.

@@ -1,4 +1,4 @@
-package rn_app;
+package email_app;
 
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -7,8 +7,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

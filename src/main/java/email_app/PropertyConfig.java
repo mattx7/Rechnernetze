@@ -1,4 +1,4 @@
-package rn_app;
+package email_app;
 
 
 import org.apache.log4j.Logger;
